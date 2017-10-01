@@ -37,6 +37,7 @@ program
 	.option('-K, --sylk', 'emit symbolic link (sylk)')
 	.option('-P, --prn', 'emit formatted text (prn)')
 	.option('-t, --txt', 'emit delimited text (txt)')
+	.option('-x, --names', 'emit workbook names')
 
 	.option('-F, --field-sep <sep>', 'CSV field separator', ",")
 	.option('-R, --row-sep <sep>', 'CSV row separator', "\n")
@@ -195,7 +196,8 @@ if(program.readOnly) process.exit(0);
 
 var oo = "", strm = false;
 if(!program.quiet) console.error(target_sheet);
-if(program.formulae) oo = X.utils.sheet_to_formulae(ws).join("\n");
+if (program.names) oo = JSON.stringify(wb.Workbook.Names);
+else if(program.formulae) oo = X.utils.sheet_to_formulae(ws).join("\n");
 else if(program.json) oo = JSON.stringify(X.utils.sheet_to_json(ws));
 else if(program.rawJs) oo = JSON.stringify(X.utils.sheet_to_json(ws,{raw:true}));
 else if(program.arrays) oo = JSON.stringify(X.utils.sheet_to_json(ws,{raw:true, header:1}));
