@@ -37,7 +37,7 @@ program
     .option('-K, --sylk', 'emit symbolic link (sylk)')
     .option('-P, --prn', 'emit formatted text (prn)')
     .option('-t, --txt', 'emit delimited text (txt)')
-    .option('-x, --names', 'emit workbook names')
+    .option('-x, --names', 'emit workbook names and thier values')
 
     .option('-F, --field-sep <sep>', 'CSV field separator', ",")
     .option('-R, --row-sep <sep>', 'CSV row separator', "\n")
@@ -106,6 +106,9 @@ function isfmt(m/*:string*/)/*:boolean*/ {
     var t = m.charAt(0) === "." ? m : "." + m;
     return program.output.slice(-t.length) === t;
 }
+
+
+
 workbook_formats.forEach(function(m) { if(program[m[0]] || isfmt(m[0])) { wb_fmt(); } });
 wb_formats_2.forEach(function(m) { if(program[m[0]] || isfmt(m[0])) { wb_fmt(); } });
 if(seen) {
@@ -144,6 +147,9 @@ if(program.listSheets) {
 
 var wopts = ({WTF:opts.WTF, bookSST:program.sst}/*:any*/);
 if(program.compress) wopts.compression = true;
+
+if (program.names) namesValues(); //Extension from AR
+
 
 /* full workbook formats */
 workbook_formats.forEach(function(m) { if(program[m[0]] || isfmt(m[0])) {
@@ -208,13 +214,6 @@ function namesValues(){
             //console.log(ref[0]);
             var index = sheets.indexOf(wsn);
             ws = wb.Sheets[wb.SheetNames[index]];
-            //console.log(wsn, index, '-----');
-            //if (index === -1) {console.log(wsn) ; printAscii(wsn);}
-            //if (ref[0] === 'COMPTE DE RESULTAT') console.log('!!!!!');
-            //console.log(n.Name);
-            //console.log(ref[0], '-----');
-            //console.log(rg);
-            //console.log(ws);
             var val = [];
             if (ws)
                 for(var R = rg.s.r; R <= rg.e.r; ++R) {
@@ -227,9 +226,16 @@ function namesValues(){
                             }
                 }
 
-                console.log(n.Name, '=', val);
+
+
+                // TRANSFORME EN VECTEUR FIXE
+                n.Ref = JSON.stringify(val).replace(/\,/g,';')
+                    .replace(/\[/g,'{').replace(/\]/g,'}');
+
+                console.log(n.Name, '=', n.Ref);
 
             }
+        else console.log('+++++', n);
         });
 
 }
@@ -247,7 +253,7 @@ function printAscii(s){
 
 var oo = "", strm = false;
 if(!program.quiet) console.error(target_sheet);
-if (program.names) namesValues(); //oo = JSON.stringify(wb.Workbook.Names);
+//if (program.names) namesValues(); //oo = JSON.stringify(wb.Workbook.Names);
 else if(program.formulae) oo = X.utils.sheet_to_formulae(ws).join("\n");
 else if(program.json) oo = JSON.stringify(X.utils.sheet_to_json(ws));
 else if(program.rawJs) oo = JSON.stringify(X.utils.sheet_to_json(ws,{raw:true}));
